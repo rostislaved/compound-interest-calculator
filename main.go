@@ -7,22 +7,38 @@ import (
 )
 
 func main() {
-	cfg := config.CommonConfig{
-		StartAmount:          100.,
-		DurationOfInvestment: 10 * config.Yearly,
-		Percent:              12., // Годовых
-		ReinvestmentPeriods:  config.Monthly,
-		DepositPeriods:       config.Monthly,
-		Deposit:              10,
-	}
 
+	// Этот конфиг как на сайте
+	//cfg := config.CommonConfig{
+	//	StartAmount:          100.,
+	//	DurationOfInvestment: 10 * config.Month,
+	//	Percent:              12., // Годовых
+	//	ReinvestmentPeriods:  config.Month,
+	//	DepositPeriods:       config.Month,
+	//	Deposit:              10,
+	//}
+
+	//x := 1 * 6 * 365.
+	//nop := int(float64(1*6*365) / x)
+	//fmt.Println(float64(1*6*365) / x)
+	//fmt.Println(nop)
+	//p := 0.01 * x
+	//fmt.Println(p)
 	//cfg := config.BaseConfig{
-	//	NumberOfPeriods: 60,
+	//	NumberOfPeriods: 10 * nop,
 	//	StartAmount:     9000.,
-	//	Percent:         0.005,
-	//	Deposit:         100.,
+	//	Percent:         p,
+	//	Deposit:         0.,
 	//	EveryN:          1, // Каждые сколько периодов делается deposit
 	//}
+	//
+	cfg := config.BaseConfig{
+		NumberOfPeriods: 10 * 6 * 365,
+		StartAmount:     9000.,
+		Percent:         0.01,
+		Deposit:         3000.,
+		EveryN:          6 * 30, // Каждые сколько периодов делается deposit
+	}
 
 	//cfg := config.BaseConfig{
 	//	NumberOfPeriods: 120,
@@ -96,6 +112,22 @@ func (c Calculation) Calc() Result {
 		}
 
 		c.periods[i].calculatePeriod(previousPeriodEndAmount)
+	}
+
+	for i := range c.periods {
+		var depositSum float64
+		var percentSum float64
+
+		if i == 0 {
+			depositSum = c.startAmount
+			percentSum = 0
+		} else {
+			depositSum = c.periods[i-1].depositSum
+			percentSum = c.periods[i-1].percentSum
+		}
+
+		c.periods[i].depositSum = depositSum + c.periods[i].deposit
+		c.periods[i].percentSum = percentSum + c.periods[i].increaseByPercent
 	}
 
 	return Result{c.periods}

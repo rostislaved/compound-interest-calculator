@@ -5,6 +5,9 @@ type Period struct {
 	increaseByPercent float64
 	percent           float64
 	deposit           float64
+
+	depositSum float64
+	percentSum float64
 }
 
 func (p *Period) EndAmount() float64 {
