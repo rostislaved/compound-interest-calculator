@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-
+	fmt.Println(generateVector(5, 3, 9))
 	// Этот конфиг как на сайте
 	//cfg := config.CommonConfig{
 	//	StartAmount:          100.,
@@ -39,6 +39,7 @@ func main() {
 		PercentEveryN:   1,
 		Deposit:         100.,
 		DepositEveryN:   1, // Каждые сколько периодов делается deposit
+		ReinvestEveryN:  1,
 	}
 
 	//cfg := config.BaseConfig{
@@ -67,22 +68,14 @@ type Calculation struct {
 func New(cfg config.BaseConfig) Calculation {
 	periodsVector := make([]Period, cfg.NumberOfPeriods)
 
-	depositVector := generateTopUpVector(cfg.NumberOfPeriods, cfg.DepositEveryN)
-	percentVector := generateTopUpVector(cfg.NumberOfPeriods, cfg.PercentEveryN)
+	depositVector := generateVector(cfg.NumberOfPeriods, cfg.DepositEveryN, cfg.Deposit)
+	percentVector := generateVector(cfg.NumberOfPeriods, cfg.PercentEveryN, cfg.Percent)
+	reinvestVector := generateVector(cfg.NumberOfPeriods, cfg.ReinvestEveryN, true)
 
 	for i := range periodsVector {
-		periodsVector[i] = Period{
-			startAmount: 0,
-			//percent:     cfg.Percent,
-		}
-
-		if depositVector[i] == 1 {
-			periodsVector[i].deposit = cfg.Deposit
-		}
-
-		if percentVector[i] == 1 {
-			periodsVector[i].percent = cfg.Percent
-		}
+		periodsVector[i].deposit = depositVector[i]
+		periodsVector[i].percent = percentVector[i]
+		periodsVector[i].reinvestInThisPeriod = reinvestVector[i]
 	}
 
 	return Calculation{
@@ -91,16 +84,14 @@ func New(cfg config.BaseConfig) Calculation {
 	}
 }
 
-// generateTopUpVector создает вектор пополнений.
-// numberOfPeriods = 6
-// everyN = 3
-// [1, 0, 0, 1, 0, 0]. То есть в 1й и 4й период будет пополнение.
-func generateTopUpVector(numberOfPeriods, everyN int) []int {
-	res := make([]int, numberOfPeriods)
+// Генерирует вектор длиной n, в котором значение value каждые everyN элементов. Начинает с 1го.
+// generateVector(5, 3, 9) = [9 0 0 9 0]
+func generateVector[T any](n, everyN int, value T) []T {
+	res := make([]T, n)
 
-	for i := 0; i < numberOfPeriods; i++ {
+	for i := 0; i < n; i++ {
 		if i%everyN == 0 {
-			res[i] = 1
+			res[i] = value
 		}
 	}
 
@@ -137,4 +128,27 @@ func (c Calculation) Calc() Result {
 	}
 
 	return Result{c.periods}
+}
+
+type Period struct {
+	startAmount       float64
+	increaseByPercent float64
+	percent           float64
+	deposit           float64
+
+	depositSum float64
+	percentSum float64
+
+	notYetReinvestedAmount float64
+	reinvestInThisPeriod   bool
+}
+
+func (p *Period) EndAmount() float64 {
+	return p.startAmount + p.increaseByPercent + p.deposit
+}
+
+func (p *Period) calculatePeriod(previousPeriodEndAmount float64) {
+	p.startAmount = previousPeriodEndAmount
+
+	p.increaseByPercent = p.startAmount * (p.percent / 100)
 }

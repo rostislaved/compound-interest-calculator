@@ -39,9 +39,10 @@ type BaseConfig struct {
 	NumberOfPeriods int
 	StartAmount     float64
 	Percent         float64
-	PercentEveryN   int // Каждые сколько периодов начисляется процент
+	PercentEveryN   int //  // > 0 // Каждые сколько периодов начисляется процент
 	Deposit         float64
-	DepositEveryN   int
+	DepositEveryN   int // > 0
+	ReinvestEveryN  int // > 0
 }
 
 func (c BaseConfig) GetBaseConfig() BaseConfig {
