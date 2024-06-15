@@ -22,15 +22,27 @@ func (r Result) PrintStats() {
 	lastAmount := r.LastAmount()
 
 	fmt.Printf("Start Amount: %.2f (%.d%%)\n", startAmount, getRoundedPercent(startAmount, lastAmount))
+	fmt.Println()
 	fmt.Printf("Total Deposits: %.2f (%.d%%)\n", totalDeposits, getRoundedPercent(totalDeposits, lastAmount))
 	fmt.Printf("Total Income: %.2f (%.d%%)\n", totalIncome, getRoundedPercent(totalIncome, lastAmount))
 	fmt.Printf("Total Amount: %.2f (100%%)\n", lastAmount)
 }
 
 func (r Result) PrintStatsByPeriod() {
-	fmt.Println(" №\t\tstartAmount\tincreaseByPercent\tDeposit\tendAmount")
+	fmt.Println(" №\t\tstartAmount\tincreaseByPercent\tDeposit\tendAmount\tdepositCumSum\t\tpercentCumSum")
+
+	format := "[%d]:\t\t%.2f\t\t%.2f\t\t\t%.2f\t%.2f\t\t%.2f(%.d%%)\t\t%.2f(%.d%%)\n"
+
 	for i, period := range r.periods {
-		fmt.Printf("[%d]:\t\t%.2f\t\t%.2f\t\t\t%.2f\t%.2f\n", i, period.startAmount, period.increaseByPercent, period.deposit, period.EndAmount())
+		fmt.Printf(format,
+			i+1,
+			period.startAmount,
+			period.increaseByPercent,
+			period.deposit,
+			period.EndAmount(),
+			period.depositSum, getRoundedPercent(period.depositSum, period.EndAmount()),
+			period.percentSum, getRoundedPercent(period.percentSum, period.EndAmount()),
+		)
 	}
 }
 

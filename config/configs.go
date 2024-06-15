@@ -3,43 +3,58 @@ package config
 type duration int
 
 const (
-	Hourly  duration = 1
-	Daily            = 24 * Hourly
-	Weekly           = 7 * Daily
-	Monthly          = 730 * Hourly          // ceil(365*24 + 6)/12
-	Yearly           = (365*24 + 6) * Hourly // 6 - учет високосных лет
+	Hour  duration = 1
+	Day            = 24 * Hour
+	Week           = 7 * Day
+	Month          = 730 * Hour
+	Year           = (365 * 24) * Hour
 )
 
+// Config replicating the fields of the calculator from the site calcus.ru.
 type CommonConfig struct {
 	StartAmount          float64
 	DurationOfInvestment duration
-	Percent              float64 // в год
-	ReinvestmentPeriods  duration
-	DepositPeriods       duration
-	Deposit              float64
+
+	Percent float64 // per year
+
+	Deposit       float64
+	DepositEveryN duration
+
+	ReinvestEveryN duration
+}
+type BaseConfig struct {
+	StartAmount     float64
+	NumberOfPeriods int
+
+	Percent       float64
+	PercentEveryN int //  // > 0 // Каждые сколько периодов начисляется процент
+
+	Deposit       float64
+	DepositEveryN int // > 0
+
+	ReinvestEveryN int // > 0
 }
 
 func (c CommonConfig) GetBaseConfig() BaseConfig {
-	b := float64(c.DurationOfInvestment) / float64(c.ReinvestmentPeriods)
-	a := int(b)
-	d := float64(c.DepositPeriods) / float64(Monthly)
+	periodDuration := min(c.DurationOfInvestment, c.ReinvestEveryN, c.DepositEveryN)
+
+	numberOfPeriods := c.DurationOfInvestment / periodDuration
+
+	depositEveryN := c.DepositEveryN / periodDuration
+
+	reinvestEveryN := c.ReinvestEveryN / periodDuration
+
 	cfg := BaseConfig{
-		NumberOfPeriods: a,
+		NumberOfPeriods: int(numberOfPeriods),
 		StartAmount:     c.StartAmount,
-		Percent:         c.Percent / float64(Yearly) * float64(Monthly),
+		Percent:         c.Percent / float64(Year) * float64(Month),
+		PercentEveryN:   1, // hardcoded
 		Deposit:         c.Deposit,
-		EveryN:          int(d),
+		DepositEveryN:   int(depositEveryN),
+		ReinvestEveryN:  int(reinvestEveryN),
 	}
 
 	return cfg
-}
-
-type BaseConfig struct {
-	NumberOfPeriods int
-	StartAmount     float64
-	Percent         float64
-	Deposit         float64
-	EveryN          int
 }
 
 func (c BaseConfig) GetBaseConfig() BaseConfig {
