@@ -7,54 +7,43 @@ import (
 )
 
 func main() {
-	fmt.Println(generateVector(5, 3, 9))
-	// Этот конфиг как на сайте
-	//cfg := config.CommonConfig{
-	//	StartAmount:          100.,
-	//	DurationOfInvestment: 10 * config.Month,
-	//	Percent:              12., // Годовых
-	//	ReinvestmentPeriods:  config.Month,
-	//	DepositPeriods:       config.Month,
-	//	Deposit:              10,
-	//}
+	c := 1
 
-	//x := 1 * 6 * 365.
-	//nop := int(float64(1*6*365) / x)
-	//fmt.Println(float64(1*6*365) / x)
-	//fmt.Println(nop)
-	//p := 0.01 * x
-	//fmt.Println(p)
-	//cfg := config.BaseConfig{
-	//	NumberOfPeriods: 10 * nop,
-	//	StartAmount:     9000.,
-	//	Percent:         p,
-	//	Deposit:         0.,
-	//	DepositEveryN:          1, // Каждые сколько периодов делается deposit
-	//}
-	//
-	cfg := config.BaseConfig{
-		NumberOfPeriods: 10 * 12,
-		StartAmount:     9000.,
-		Percent:         1,
-		PercentEveryN:   1,
-		Deposit:         100.,
-		DepositEveryN:   1, // Каждые сколько периодов делается deposit
-		ReinvestEveryN:  1,
+	var baseConfig config.BaseConfig
+
+	switch c {
+	case 1:
+		cfg := config.BaseConfig{
+			StartAmount:     9000.,
+			NumberOfPeriods: 10 * 12,
+			Percent:         1,
+			PercentEveryN:   1,
+			Deposit:         100.,
+			DepositEveryN:   1, // Каждые сколько периодов делается deposit
+			ReinvestEveryN:  12,
+		}
+
+		baseConfig = cfg.GetBaseConfig()
+	case 2:
+		// Этот конфиг как на сайте
+		cfg := config.CommonConfig{
+			StartAmount:          9000.,
+			DurationOfInvestment: 10 * config.Year,
+			Percent:              12., // Годовых
+			Deposit:              100,
+			DepositEveryN:        config.Month,
+			ReinvestEveryN:       config.Month,
+		}
+
+		baseConfig = cfg.GetBaseConfig()
+	default:
+		return
 	}
 
-	//cfg := config.BaseConfig{
-	//	NumberOfPeriods: 120,
-	//	StartAmount:     100.,
-	//	Percent:         1,
-	//	Deposit:         10.,
-	//	DepositEveryN:          1, // Каждые сколько периодов делается deposit
-	//}
+	calculation := New(baseConfig)
 
-	baseConfig := cfg.GetBaseConfig()
+	result := calculation.Calc()
 
-	periods := New(baseConfig)
-
-	result := periods.Calc()
 	result.PrintStatsByPeriod()
 	fmt.Println()
 	result.PrintStats()
@@ -84,14 +73,14 @@ func New(cfg config.BaseConfig) Calculation {
 	}
 }
 
-// Генерирует вектор длиной n, в котором значение value каждые everyN элементов. Начинает с 1го.
-// generateVector(5, 3, 9) = [9 0 0 9 0]
+// Генерирует вектор длиной n, в котором каждый everyN'й элемент имеет значение value.
+// generateVector(6, 3, 9) = [0 0 9 0 0 9].
 func generateVector[T any](n, everyN int, value T) []T {
 	res := make([]T, n)
 
-	for i := 0; i < n; i++ {
+	for i := 1; i <= n; i++ {
 		if i%everyN == 0 {
-			res[i] = value
+			res[i-1] = value
 		}
 	}
 
@@ -100,15 +89,18 @@ func generateVector[T any](n, everyN int, value T) []T {
 
 func (c Calculation) Calc() Result {
 	for i := range c.periods {
-		var previousPeriodEndAmount float64
+		var previousPeriod Period
 
 		if i == 0 {
-			previousPeriodEndAmount = c.startAmount
+			previousPeriod = Period{
+				startAmount: c.startAmount,
+				endAmount:   c.startAmount,
+			}
 		} else {
-			previousPeriodEndAmount = c.periods[i-1].EndAmount()
+			previousPeriod = c.periods[i-1]
 		}
 
-		c.periods[i].calculatePeriod(previousPeriodEndAmount)
+		c.periods[i].calculatePeriod(previousPeriod)
 	}
 
 	for i := range c.periods {
@@ -132,6 +124,7 @@ func (c Calculation) Calc() Result {
 
 type Period struct {
 	startAmount       float64
+	endAmount         float64
 	increaseByPercent float64
 	percent           float64
 	deposit           float64
@@ -144,11 +137,23 @@ type Period struct {
 }
 
 func (p *Period) EndAmount() float64 {
-	return p.startAmount + p.increaseByPercent + p.deposit
+	return p.endAmount
 }
 
-func (p *Period) calculatePeriod(previousPeriodEndAmount float64) {
-	p.startAmount = previousPeriodEndAmount
+func (p *Period) calculatePeriod(prev Period) {
+	p.startAmount = prev.endAmount
+	p.notYetReinvestedAmount += prev.notYetReinvestedAmount
 
 	p.increaseByPercent = p.startAmount * (p.percent / 100)
+
+	p.notYetReinvestedAmount += p.increaseByPercent
+
+	totalIncrease := p.deposit
+
+	if p.reinvestInThisPeriod {
+		totalIncrease += p.notYetReinvestedAmount
+		p.notYetReinvestedAmount = 0
+	}
+
+	p.endAmount = p.startAmount + totalIncrease
 }

@@ -10,39 +10,51 @@ const (
 	Year           = (365 * 24) * Hour
 )
 
-// Config replicating the fields of the calculator from the site calcus.ru
+// Config replicating the fields of the calculator from the site calcus.ru.
 type CommonConfig struct {
 	StartAmount          float64
 	DurationOfInvestment duration
-	Percent              float64 // per year
-	ReinvestmentPeriods  duration
-	DepositPeriods       duration
-	Deposit              float64
+
+	Percent float64 // per year
+
+	Deposit       float64
+	DepositEveryN duration
+
+	ReinvestEveryN duration
+}
+type BaseConfig struct {
+	StartAmount     float64
+	NumberOfPeriods int
+
+	Percent       float64
+	PercentEveryN int //  // > 0 // Каждые сколько периодов начисляется процент
+
+	Deposit       float64
+	DepositEveryN int // > 0
+
+	ReinvestEveryN int // > 0
 }
 
 func (c CommonConfig) GetBaseConfig() BaseConfig {
-	b := float64(c.DurationOfInvestment) / float64(c.ReinvestmentPeriods)
-	a := int(b)
-	d := float64(c.DepositPeriods) / float64(Month)
+	periodDuration := min(c.DurationOfInvestment, c.ReinvestEveryN, c.DepositEveryN)
+
+	numberOfPeriods := c.DurationOfInvestment / periodDuration
+
+	depositEveryN := c.DepositEveryN / periodDuration
+
+	reinvestEveryN := c.ReinvestEveryN / periodDuration
+
 	cfg := BaseConfig{
-		NumberOfPeriods: a,
+		NumberOfPeriods: int(numberOfPeriods),
 		StartAmount:     c.StartAmount,
 		Percent:         c.Percent / float64(Year) * float64(Month),
+		PercentEveryN:   1, // hardcoded
 		Deposit:         c.Deposit,
-		DepositEveryN:   int(d),
+		DepositEveryN:   int(depositEveryN),
+		ReinvestEveryN:  int(reinvestEveryN),
 	}
 
 	return cfg
-}
-
-type BaseConfig struct {
-	NumberOfPeriods int
-	StartAmount     float64
-	Percent         float64
-	PercentEveryN   int //  // > 0 // Каждые сколько периодов начисляется процент
-	Deposit         float64
-	DepositEveryN   int // > 0
-	ReinvestEveryN  int // > 0
 }
 
 func (c BaseConfig) GetBaseConfig() BaseConfig {

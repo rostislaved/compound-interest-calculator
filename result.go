@@ -35,7 +35,7 @@ func (r Result) PrintStatsByPeriod() {
 
 	for i, period := range r.periods {
 		fmt.Printf(format,
-			i,
+			i+1,
 			period.startAmount,
 			period.increaseByPercent,
 			period.deposit,

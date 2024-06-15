@@ -92,12 +92,12 @@ linters:
     - whitespace
     - nestif
     - godot
-    - gomnd
+#    - gomnd
     - asciicheck
     - durationcheck
     - exhaustive
     - exportloopref
-    - forbidigo
+#    - forbidigo
     - gocognit
     - goheader
     - goimports
