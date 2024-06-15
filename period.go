@@ -8,6 +8,8 @@ type Period struct {
 
 	depositSum float64
 	percentSum float64
+
+	notYetReinvestedAmount float64
 }
 
 func (p *Period) EndAmount() float64 {
@@ -17,5 +19,5 @@ func (p *Period) EndAmount() float64 {
 func (p *Period) calculatePeriod(previousPeriodEndAmount float64) {
 	p.startAmount = previousPeriodEndAmount
 
-	p.increaseByPercent = p.startAmount * (0 + float64(p.percent)/100)
+	p.increaseByPercent = p.startAmount * (p.percent / 100)
 }

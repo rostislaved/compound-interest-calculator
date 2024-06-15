@@ -29,15 +29,16 @@ func main() {
 	//	StartAmount:     9000.,
 	//	Percent:         p,
 	//	Deposit:         0.,
-	//	EveryN:          1, // Каждые сколько периодов делается deposit
+	//	DepositEveryN:          1, // Каждые сколько периодов делается deposit
 	//}
 	//
 	cfg := config.BaseConfig{
-		NumberOfPeriods: 10 * 6 * 365,
+		NumberOfPeriods: 10 * 12,
 		StartAmount:     9000.,
-		Percent:         0.01,
-		Deposit:         3000.,
-		EveryN:          6 * 30, // Каждые сколько периодов делается deposit
+		Percent:         1,
+		PercentEveryN:   1,
+		Deposit:         100.,
+		DepositEveryN:   1, // Каждые сколько периодов делается deposit
 	}
 
 	//cfg := config.BaseConfig{
@@ -45,7 +46,7 @@ func main() {
 	//	StartAmount:     100.,
 	//	Percent:         1,
 	//	Deposit:         10.,
-	//	EveryN:          1, // Каждые сколько периодов делается deposit
+	//	DepositEveryN:          1, // Каждые сколько периодов делается deposit
 	//}
 
 	baseConfig := cfg.GetBaseConfig()
@@ -66,16 +67,21 @@ type Calculation struct {
 func New(cfg config.BaseConfig) Calculation {
 	periodsVector := make([]Period, cfg.NumberOfPeriods)
 
-	topUpVector := generateTopUpVector(cfg.NumberOfPeriods, cfg.EveryN)
+	depositVector := generateTopUpVector(cfg.NumberOfPeriods, cfg.DepositEveryN)
+	percentVector := generateTopUpVector(cfg.NumberOfPeriods, cfg.PercentEveryN)
 
 	for i := range periodsVector {
 		periodsVector[i] = Period{
 			startAmount: 0,
-			percent:     cfg.Percent,
+			//percent:     cfg.Percent,
 		}
 
-		if topUpVector[i] == 1 {
+		if depositVector[i] == 1 {
 			periodsVector[i].deposit = cfg.Deposit
+		}
+
+		if percentVector[i] == 1 {
+			periodsVector[i].percent = cfg.Percent
 		}
 	}
 

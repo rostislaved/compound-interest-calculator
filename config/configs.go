@@ -29,7 +29,7 @@ func (c CommonConfig) GetBaseConfig() BaseConfig {
 		StartAmount:     c.StartAmount,
 		Percent:         c.Percent / float64(Year) * float64(Month),
 		Deposit:         c.Deposit,
-		EveryN:          int(d),
+		DepositEveryN:   int(d),
 	}
 
 	return cfg
@@ -39,8 +39,9 @@ type BaseConfig struct {
 	NumberOfPeriods int
 	StartAmount     float64
 	Percent         float64
+	PercentEveryN   int // Каждые сколько периодов начисляется процент
 	Deposit         float64
-	EveryN          int
+	DepositEveryN   int
 }
 
 func (c BaseConfig) GetBaseConfig() BaseConfig {
