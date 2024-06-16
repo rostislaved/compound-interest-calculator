@@ -54,6 +54,11 @@ func (c Calculation) Calc() Result {
 		}
 
 		c.periods[i].calculatePeriod(previousPeriod)
+
+		// Add not yet reinvested sums
+		if i == len(c.periods)-1 {
+			c.periods[i].endAmount += c.periods[i].notYetReinvestedAmount //
+		}
 	}
 
 	return Result{c.periods}
