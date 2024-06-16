@@ -15,11 +15,12 @@ func PrintStats(results ...Result) {
 		startAmount := result.FirstPeriod().startAmount
 		lastAmount := result.LastAmount()
 		lastPeriod := result.LastPeriod()
+		allDeposits := startAmount + lastPeriod.depositSum
 
-		block1 := fmt.Sprintf("%.2f (%.1f%%)", startAmount, getPercent(startAmount, lastAmount))
-		block2 := fmt.Sprintf("%.2f (%.1f%%)", lastPeriod.depositSum, getPercent(lastPeriod.depositSum, lastAmount))
-		block3 := fmt.Sprintf("%.2f (%.1f%%)", lastPeriod.percentSum, getPercent(lastPeriod.percentSum, lastAmount))
-		block4 := fmt.Sprintf("%.2f (100%%) ", lastAmount)
+		block1 := fmt.Sprintf("%.2f (%.1f%%) (%.1f%%)", startAmount, getPercent(startAmount, lastAmount), getPercent(startAmount, allDeposits))
+		block2 := fmt.Sprintf("%.2f (%.1f%%) (%.1f%%)", lastPeriod.depositSum, getPercent(lastPeriod.depositSum, lastAmount), getPercent(lastPeriod.depositSum, allDeposits))
+		block3 := fmt.Sprintf("%.2f (%.1f%%) (%.1f%%)", lastPeriod.percentSum, getPercent(lastPeriod.percentSum, lastAmount), getPercent(lastPeriod.percentSum, allDeposits))
+		block4 := fmt.Sprintf("%.2f (100%%) (%.1f%%)", lastAmount, getPercent(lastAmount, allDeposits))
 		length := max(len(block1), len(block2), len(block3), len(block4))
 
 		block1 = complementWithSpaces(block1, length)
@@ -58,7 +59,7 @@ func complementWithSpaces(s string, length int) string {
 }
 
 func PrintStatsByPeriod(r Result) {
-	header := []string{"№", "startAmount", "increaseByPercent", "Deposit", "endAmount", "depositCumSum", "percentCumSum"}
+	header := []string{"№", "Start Amount", "Percent", "Deposit", "End Amount", "depositCumSum", "percentCumSum"}
 
 	var arrayOfBlocks [][]string
 

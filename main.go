@@ -83,5 +83,5 @@ func main() {
 	//PrintStatsByPeriod(result)
 	fmt.Println()
 	PrintStatsByPeriod(result1)
-	//PrintStats(result1, result2)
+	PrintStats(result1)
 }
