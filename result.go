@@ -1,72 +1,7 @@
 package main
 
-import (
-	"fmt"
-	"math"
-)
-
 type Result struct {
 	periods []Period
-}
-
-func (r Result) PrintStats() {
-	var totalDeposits float64
-	var totalIncome float64
-
-	for _, period := range r.periods {
-		totalDeposits += period.deposit
-		totalIncome += period.increaseByPercent
-	}
-
-	startAmount := r.FirstPeriod().startAmount
-	lastAmount := r.LastAmount()
-
-	fmt.Printf("Start Amount: %.2f (%.d%%)\n", startAmount, getRoundedPercent(startAmount, lastAmount))
-	fmt.Println()
-	fmt.Printf("Total Deposits: %.2f (%.d%%)\n", totalDeposits, getRoundedPercent(totalDeposits, lastAmount))
-	fmt.Printf("Total Income: %.2f (%.d%%)\n", totalIncome, getRoundedPercent(totalIncome, lastAmount))
-	fmt.Printf("Total Amount: %.2f (100%%)\n", lastAmount)
-}
-
-func (r Result) PrintStatsByPeriod() {
-	fmt.Println(" №\t\tstartAmount\tincreaseByPercent\tDeposit\tendAmount\tdepositCumSum\t\tpercentCumSum")
-
-	format := "[%d]:\t\t%.2f\t\t%.2f\t\t\t%.2f\t%.2f\t\t%.2f(%.d%%)\t\t%.2f(%.d%%)\n"
-
-	for i, period := range r.periods {
-		fmt.Printf(format,
-			i+1,
-			period.startAmount,
-			period.increaseByPercent,
-			period.deposit,
-			period.EndAmount(),
-			period.depositSum, getRoundedPercent(period.depositSum, period.EndAmount()),
-			period.percentSum, getRoundedPercent(period.percentSum, period.EndAmount()),
-		)
-	}
-}
-
-func getRoundedPercent(a, b float64) int {
-	return int(math.Round(a / b * 100))
-}
-
-func (r Result) Print() {
-	a := r.periods[0].startAmount
-	b := r.LastAmount()
-	c := b - a
-
-	const n = 160 // TODO
-
-	diff := c / n
-
-	for _, period := range r.periods {
-		r := (period.EndAmount() - a) / diff
-		for i := 0; i < int(r); i++ {
-			fmt.Printf("|")
-		}
-
-		fmt.Println()
-	}
 }
 
 // Last отдает последнее значение amount. После всех расчетов.
