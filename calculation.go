@@ -56,21 +56,5 @@ func (c Calculation) Calc() Result {
 		c.periods[i].calculatePeriod(previousPeriod)
 	}
 
-	for i := range c.periods {
-		var depositSum float64
-		var percentSum float64
-
-		if i == 0 {
-			depositSum = c.startAmount
-			percentSum = 0
-		} else {
-			depositSum = c.periods[i-1].depositSum
-			percentSum = c.periods[i-1].percentSum
-		}
-
-		c.periods[i].depositSum = depositSum + c.periods[i].deposit
-		c.periods[i].percentSum = percentSum + c.periods[i].increaseByPercent
-	}
-
 	return Result{c.periods}
 }

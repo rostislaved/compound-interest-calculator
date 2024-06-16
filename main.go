@@ -7,9 +7,9 @@ import (
 )
 
 func main() {
-	c := 1
+	c := 3
 
-	var baseConfig config.BaseConfig
+	var baseConfig1 config.BaseConfig
 
 	switch c {
 	case 1:
@@ -23,7 +23,7 @@ func main() {
 			ReinvestEveryN:  1,
 		}
 
-		baseConfig = cfg.GetBaseConfig()
+		baseConfig1 = cfg.GetBaseConfig()
 	case 2:
 		cfg := config.BaseConfig{
 			StartAmount:     9000.,
@@ -35,7 +35,7 @@ func main() {
 			ReinvestEveryN:  6 * 60,
 		}
 
-		baseConfig = cfg.GetBaseConfig()
+		baseConfig1 = cfg.GetBaseConfig()
 	case 3:
 		// Этот конфиг как на сайте
 		cfg := config.CommonConfig{
@@ -49,16 +49,39 @@ func main() {
 			ReinvestEveryN: 6 * config.Month,
 		}
 
-		baseConfig = cfg.GetBaseConfig()
+		baseConfig1 = cfg.GetBaseConfig()
 	default:
 		return
 	}
 
-	calculation := New(baseConfig)
+	//baseConfig1 := config.BaseConfig{
+	//	StartAmount:     9000.,
+	//	NumberOfPeriods: 20 * 365 * 6,
+	//	Percent:         0.005,
+	//	PercentEveryN:   1,
+	//	Deposit:         0.,
+	//	DepositEveryN:   1, // Каждые сколько периодов делается deposit
+	//	ReinvestEveryN:  1,
+	//}
+	//
+	//baseConfig2 := config.BaseConfig{
+	//	StartAmount:     9000.,
+	//	NumberOfPeriods: 20 * 365 * 6,
+	//	Percent:         0.005,
+	//	PercentEveryN:   1,
+	//	Deposit:         0.,
+	//	DepositEveryN:   1, // Каждые сколько периодов делается deposit
+	//	ReinvestEveryN:  6 * 365,
+	//}
 
-	result := calculation.Calc()
+	calculation1 := New(baseConfig1)
+	//calculation2 := New(baseConfig2)
 
-	//result.PrintStatsByPeriod()
+	result1 := calculation1.Calc()
+	//result2 := calculation2.Calc()
+
+	//PrintStatsByPeriod(result)
 	fmt.Println()
-	result.PrintStats()
+	PrintStats(result1)
+	//PrintStats(result1, result2)
 }

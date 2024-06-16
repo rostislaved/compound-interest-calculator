@@ -21,6 +21,8 @@ func (p *Period) EndAmount() float64 {
 func (p *Period) calculatePeriod(prev Period) {
 	p.startAmount = prev.endAmount
 	p.notYetReinvestedAmount += prev.notYetReinvestedAmount
+	p.percentSum += prev.percentSum
+	p.depositSum += prev.depositSum
 
 	p.increaseByPercent = p.startAmount * (p.percent / 100)
 
@@ -33,5 +35,7 @@ func (p *Period) calculatePeriod(prev Period) {
 		p.notYetReinvestedAmount = 0
 	}
 
+	p.depositSum += p.deposit
+	p.percentSum += p.increaseByPercent
 	p.endAmount = p.startAmount + totalIncrease
 }
