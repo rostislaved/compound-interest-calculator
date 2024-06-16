@@ -6,7 +6,6 @@ import (
 )
 
 func PrintStats(results ...Result) {
-
 	var blocks1 []string
 	var blocks2 []string
 	var blocks3 []string
@@ -17,9 +16,9 @@ func PrintStats(results ...Result) {
 		lastAmount := result.LastAmount()
 		lastPeriod := result.LastPeriod()
 
-		block1 := fmt.Sprintf("%.2f (%.1f%%)", startAmount, getRoundedPercent(startAmount, lastAmount))
-		block2 := fmt.Sprintf("%.2f (%.1f%%)", lastPeriod.depositSum, getRoundedPercent(lastPeriod.depositSum, lastAmount))
-		block3 := fmt.Sprintf("%.2f (%.1f%%)", lastPeriod.percentSum, getRoundedPercent(lastPeriod.percentSum, lastAmount))
+		block1 := fmt.Sprintf("%.2f (%.1f%%)", startAmount, getPercent(startAmount, lastAmount))
+		block2 := fmt.Sprintf("%.2f (%.1f%%)", lastPeriod.depositSum, getPercent(lastPeriod.depositSum, lastAmount))
+		block3 := fmt.Sprintf("%.2f (%.1f%%)", lastPeriod.percentSum, getPercent(lastPeriod.percentSum, lastAmount))
 		block4 := fmt.Sprintf("%.2f (100%%) ", lastAmount)
 		length := max(len(block1), len(block2), len(block3), len(block4))
 
@@ -49,7 +48,7 @@ func PrintStats(results ...Result) {
 }
 
 func complementWithSpaces(s string, length int) string {
-	diff := length - len(s)
+	diff := length - len([]rune(s))
 
 	if diff > 0 {
 		s = strings.Repeat(" ", diff) + s
@@ -59,42 +58,69 @@ func complementWithSpaces(s string, length int) string {
 }
 
 func PrintStatsByPeriod(r Result) {
-	fmt.Println(" №\t\tstartAmount\tincreaseByPercent\tDeposit\tendAmount\tdepositCumSum\t\tpercentCumSum")
+	header := []string{"№", "startAmount", "increaseByPercent", "Deposit", "endAmount", "depositCumSum", "percentCumSum"}
 
-	format := "[%d]:\t\t%.2f\t\t%.2f\t\t\t%.2f\t%.2f\t\t%.2f(%.d%%)\t\t%.2f(%.d%%)\n"
+	var arrayOfBlocks [][]string
 
 	for i, period := range r.periods {
-		fmt.Printf(format,
-			i+1,
-			period.startAmount,
-			period.increaseByPercent,
-			period.deposit,
-			period.EndAmount(),
-			period.depositSum, getRoundedPercent(period.depositSum, period.EndAmount()),
-			period.percentSum, getRoundedPercent(period.percentSum, period.EndAmount()),
+		var blocks []string
+
+		blocks = append(blocks,
+			fmt.Sprintf("%d", i+1),
+			fmt.Sprintf("%.2f", period.startAmount),
+			fmt.Sprintf("%.2f", period.increaseByPercent),
+			fmt.Sprintf("%.2f", period.deposit),
+			fmt.Sprintf("%.2f", period.EndAmount()),
+			fmt.Sprintf("%.2f (%4.1f%%)", period.depositSum, getPercent(period.depositSum, period.EndAmount())),
+			fmt.Sprintf("%.2f (%4.1f%%)", period.percentSum, getPercent(period.percentSum, period.EndAmount())),
 		)
+
+		arrayOfBlocks = append(arrayOfBlocks, blocks)
 	}
-}
 
-func getRoundedPercent(a, b float64) float64 {
-	return a / b * 100
-}
+	arrayOfBlocks = append([][]string{header}, arrayOfBlocks...)
 
-func Print(r Result) {
-	a := r.periods[0].startAmount
-	b := r.LastAmount()
-	c := b - a
+	blocksMaxLength := make([]int, len(arrayOfBlocks[0]))
 
-	const n = 160 // TODO
+	for _, blocks := range arrayOfBlocks {
+		for i, block := range blocks {
+			blocksMaxLength[i] = max(blocksMaxLength[i], len(block))
+		}
+	}
 
-	diff := c / n
+	for i := range arrayOfBlocks {
+		for j := range arrayOfBlocks[i] {
+			arrayOfBlocks[i][j] = complementWithSpaces(arrayOfBlocks[i][j], blocksMaxLength[j])
+		}
+	}
 
-	for _, period := range r.periods {
-		r := (period.EndAmount() - a) / diff
-		for i := 0; i < int(r); i++ {
-			fmt.Printf("|")
+	var lines []string
+
+	for _, blocks := range arrayOfBlocks {
+
+		line := fmt.Sprintf("| %s |\n", strings.Join(blocks, " | "))
+		lines = append(lines, line)
+	}
+
+	for i, line := range lines {
+		l := len([]rune(line)) - 1
+		dashLine := strings.Repeat("-", l)
+
+		if i == 0 {
+			fmt.Println(dashLine)
 		}
 
-		fmt.Println()
+		fmt.Print(line)
+
+		switch i {
+		case 0, len(arrayOfBlocks) - 1:
+			fmt.Println(dashLine)
+		}
+
 	}
+
+}
+
+func getPercent(a, b float64) float64 {
+	return a / b * 100
 }
